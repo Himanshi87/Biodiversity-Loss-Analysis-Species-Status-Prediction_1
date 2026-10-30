@@ -22,10 +22,7 @@ if (typeof document !== "undefined") {
   const esc = s => String(s).replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
   const pc = x => (x * 100).toFixed(1) + "%";
   const badge = s => `<span class="badge" style="background:${COLOR[s]}">${s}</span> ${LABEL[s]}`;
-  const post = (url, data) => fetch(url, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(data || {})});
 
-  fetch("/api/me").then(r => r.ok ? r.json() : (location.href = "/login")).then(u => { if (u) $("who").textContent = u.name; });
-  $("logout").onclick = async () => { await post("/api/logout"); location.href = "/login"; };
 
   if (DATA.demo) $("demo").innerHTML = "⚠️ <b>Demo data:</b> predictions are illustrative only and are not real findings.";
   $("names").innerHTML = DATA.species.map(s => `<option value="${esc(s[1] || s[0])}">${esc(s[0])}</option>`).join("");
@@ -70,16 +67,7 @@ if (typeof document !== "undefined") {
       <p>Predicted next IUCN status:</p><p>${badge(r.top)}</p>
       <p>Confidence ${pc(r.conf)} · Risk tier: <b>${TIER[r.top]}</b> · Worsen ${pc(r.worse)} / Improve ${pc(r.better)} / Same ${pc(r.same)}</p>
       ${bars}${risk}${r.known ? "" : '<p class="note">⚠️ Group not in training data; prediction relies mainly on current status.</p>'}
-      <p class="note">Probabilities assume the status changes at the next assessment. Reasons and measures are informational and do not affect the prediction.</p>
-      <button type="button" id="mailbtn" class="ghost mailbtn">Email me this report</button> <span id="mailmsg" class="note"></span>`;
-    $("mailbtn").onclick = async () => {
-      const b = $("mailbtn"); b.disabled = true;
-      const res = await post("/api/email-report", {text: report});
-      if (res.status === 401) { location.href = "/login"; return; }
-      const j = await res.json().catch(() => ({}));
-      $("mailmsg").textContent = res.ok ? (j.dev ? "Email service not configured: report printed in the server console." : "Report sent to your email.") : (j.error || "Could not send the email.");
-      b.disabled = false;
-    };
+      <p class="note">Probabilities assume the status changes at the next assessment. Reasons and measures are informational and do not affect the prediction.</p>`;
   });
 }
 if (typeof module !== "undefined") module.exports = {predict};
